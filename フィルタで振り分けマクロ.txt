@@ -66,7 +66,7 @@ Sub furiwake()
             fileName = sheetName
         End If
         
-        ' シート名が空の拠点はスキップ
+        ' シート名(C列)が空の場合はスキップ
         If sheetName <> "" Then
             ' ファイル名・ファイルパスを設定(カレントディレクトリ＋【xx】20220307_データ出力.xlsx)
             outputFileName = "【" + fileName + "】" + today + "_データ出力.xlsx"
