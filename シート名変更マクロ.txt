@@ -1,0 +1,49 @@
+' A5SQLの「全ての結果セットをEXCELへ出力」をした後のシート名変更マクロ
+Sub ChangeSheet()
+    Dim i As Integer
+    Dim j As Integer
+    Dim name As String
+    Dim nameArray As Variant
+
+    ' シート名を定義(例)
+    nameArray = Array("月ごとログイン数" _
+                    , "日ごとログイン数" _
+                    , "ユーザIDごとログイン数" _
+                    , "月×ユーザIDごとログイン数" _
+                    , "日×ユーザIDごとログイン数" _
+                    , "IPアドレスごと(社内IP)ログイン数" _
+                    , "IPアドレスごと(社外IP)ログイン数" _
+                    , "IPアドレス(社外IP)×ユーザIDごとログイン数" _
+                    , "IPアドレス(深夜時間)ログイン数" _
+                    , "ユーザIDごとアクセス数" _
+                    , "月×ユーザIDごとアクセス数" _
+                    , "日×ユーザIDごとアクセス数" _
+                    , "日×アクセス先×ユーザIDごとアクセス数" _
+                    , "ユーザID×アクセス先ごとアクセス数" _
+                    , "アクセス先ごとアクセス数" _
+                    , "アクセス先×月ごとアクセス数" _
+                    , "アクセス先×日ごとアクセス数")
+
+    ' シート名に重複がないかチェック
+    For i = 0 To UBound(nameArray)
+        For j = i + 1 To UBound(nameArray)
+            If nameArray(i) = nameArray(j) Then
+                MsgBox (i + 1 & "番目と" & j + 1 & "番目に定義したシート名に重複があります")
+                End
+            End If
+        Next j
+    Next i
+
+    ' 定義したシート数分ループ
+    For i = 0 To UBound(nameArray)
+        j = i + 1
+        name = nameArray(i)
+
+        ' シート名の変更
+        Sheets(j).name = name
+        
+        ' 1行目と2行目を消す(A5SQLでは最初の2行がデータではないため)
+        Sheets(j).Rows(1).Delete
+        Sheets(j).Rows(1).Delete
+    Next i
+End Sub

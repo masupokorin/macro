@@ -1,0 +1,114 @@
+' 元データがあって、フィルタで絞ったものを別ファイルとして出力したい時に使うマクロ
+Sub furiwake()
+    ' 前提
+    ' 「TOP」という名前のシートを作る
+    '   B3セルから条件を記載する
+    '   B列はフィルタリングしたい文言(カンマ区切りで2つまで)
+    '   C列はフィルタリングした結果のシート名
+    '   D列はフィルタリングした結果のファイル名(【xx】のようなヘッダ的な使い方
+    ' 「対象」シートという名前のシートを作る
+    '   そこに対象データを貼り付ける
+    '   フィルタをかける場所はI列(9番目)
+    '   1度にかけれるフィルタは二つまで
+   
+    Dim today As String
+    Dim i As Integer
+    Dim j As Integer
+    Dim topSheet As String
+    Dim taishoSheet As String
+    
+    Dim fillterRow As Integer
+    Dim taishoRow As Integer
+    
+    Dim fillter As String
+    Dim sheetName As String
+    Dim fileName As String
+    Dim fillterArr() As String
+    Dim outputFileName As String
+    Dim outputPath As String
+    Dim outputFullPath As String
+ 
+    If MsgBox("実行しますか？", vbYesNo) = vbNo Then
+        End
+    End If
+    
+    today = Format(Date, "yyyymmdd")
+ 
+    outputPath = ThisWorkbook.Path
+ 
+    topSheet = "TOP"
+    taishoSheet = "対象"
+
+    fillterRow = Worksheets(topSheet).Cells(Rows.Count, "B").End(xlUp).Row
+    taishoRow = Worksheets(taishoSheet).Cells(Rows.Count, "A").End(xlUp).Row
+    
+    If taishoRow <= 1 Then
+        MsgBox "対象シートにデータがありません"
+        End
+    End If
+    
+    If fillterRow <= 2 Then
+        MsgBox "対象のフィルタ文字列がありません"
+        End
+    End If
+    
+    Application.ScreenUpdating = False
+    
+    ' TOPシートのB3からループ開始
+    For i = 3 To fillterRow
+        ' B列の値を取得
+        fillter = Worksheets("TOP").Cells(i, "B").Value
+        ' C列の値を取得
+        sheetName = Worksheets("TOP").Cells(i, "C").Value
+        ' D列の値を取得
+        fileName = Worksheets("TOP").Cells(i, "D").Value
+        If sheetName <> "" And fileName = "" Then
+            fileName = sheetName
+        End If
+        
+        ' シート名が空の拠点はスキップ
+        If sheetName <> "" Then
+            ' ファイル名・ファイルパスを設定(カレントディレクトリ＋【xx】20220307_データ出力.xlsx)
+            outputFileName = "【" + fileName + "】" + today + "_データ出力.xlsx"
+            outputFullPath = outputPath + "\" + outputFileName
+            
+            ' フィルタする
+            fillterArr = Split(fillter, ",")
+            If UBound(fillterArr) - LBound(fillterArr) + 1 = 1 Then
+                Worksheets(taishoSheet).Range("A1").AutoFilter 9, fillter
+            Else
+                Worksheets(taishoSheet).Range("A1").AutoFilter 9, fillterArr(0), xlOr, fillterArr(1)
+            End If
+            
+            ' 新規ワークシートを作る
+            Worksheets.Add after:=Worksheets(Worksheets.Count)
+            ActiveSheet.name = sheetName
+            
+            ' フィルタデータを転記
+            Worksheets(taishoSheet).Range("A1").CurrentRegion.Copy ActiveSheet.Range("A1")
+            ActiveSheet.Cells.EntireColumn.AutoFit
+            
+            ' シートをファイルにコピーする
+            ActiveSheet.Copy
+            Application.DisplayAlerts = False
+            ActiveWorkbook.SaveAs outputFullPath
+            Application.DisplayAlerts = True
+            ActiveWorkbook.Close
+            
+            ' シートを削除
+            ThisWorkbook.Activate
+            Application.DisplayAlerts = False
+            Worksheets(sheetName).Delete
+            Application.DisplayAlerts = True
+            
+            ' フィルタを解除
+            Worksheets(taishoSheet).Range("A1").AutoFilter
+        
+        End If
+    Next i
+    
+    Application.ScreenUpdating = True
+    
+    Worksheets(topSheet).Select
+    MsgBox " 出力完了しました"
+End Sub
